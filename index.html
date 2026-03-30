@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>E-Loading Sales Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Android-ready tracker</p>
+      <h1>E-Loading Sales Tracker</h1>
+      <p class="subtitle">Fast entry, paid tracking, charts, and install support.</p>
+    </div>
+    <button id="installBtn" class="secondary hidden">Install App</button>
+  </header>
+
+  <main class="container">
+    <section class="card quick-entry-card">
+      <div class="section-head compact-head">
+        <div>
+          <h2>Add Sale</h2>
+          <p>One-hand friendly layout for faster encoding.</p>
+        </div>
+        <div class="quick-tips">
+          <span id="todayBadge" class="mini-chip">Today</span>
+          <span id="recordCountBadge" class="mini-chip">0 records</span>
+        </div>
+      </div>
+
+      <div class="quick-promos" id="quickPromos">
+        <button type="button" class="chip" data-promo="GIGA50" data-price="50">GIGA50 · ₱50</button>
+        <button type="button" class="chip" data-promo="SURF50" data-price="50">SURF50 · ₱50</button>
+        <button type="button" class="chip" data-promo="ALLNET99" data-price="99">ALLNET99 · ₱99</button>
+        <button type="button" class="chip" data-promo="UNLI299" data-price="299">UNLI299 · ₱299</button>
+      </div>
+
+      <form id="saleForm" class="grid-form" autocomplete="off">
+        <label>
+          Promo Name
+          <input type="text" id="promoName" placeholder="e.g. GIGA50" required enterkeyhint="next" />
+        </label>
+
+        <label>
+          Price
+          <div class="input-with-prefix">
+            <span>₱</span>
+            <input type="number" id="price" min="0" step="0.01" placeholder="0.00" inputmode="decimal" required enterkeyhint="next" />
+          </div>
+        </label>
+
+        <label class="full-width">
+          Customer Name (optional)
+          <input type="text" id="customerName" placeholder="e.g. Ana" enterkeyhint="next" />
+        </label>
+
+        <div class="full-width">
+          <span class="label-title">Payment Status</span>
+          <div class="status-toggle" id="paymentToggle" role="group" aria-label="Payment status">
+            <button type="button" class="toggle-btn active" data-status="Paid">Paid</button>
+            <button type="button" class="toggle-btn" data-status="Unpaid">Unpaid</button>
+          </div>
+          <select id="paymentStatus" class="hidden-select" required>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
+        </div>
+
+        <label class="full-width">
+          Notes (optional)
+          <input type="text" id="notes" placeholder="Extra details" enterkeyhint="done" />
+        </label>
+
+        <div class="form-actions full-width sticky-actions">
+          <button type="submit" id="saveBtn">Save Sale</button>
+          <button type="reset" class="secondary">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="stats-grid">
+      <article class="stat-card emphasis">
+        <span>Today</span>
+        <strong id="todayAmount">₱0.00</strong>
+      </article>
+      <article class="stat-card">
+        <span>Total Sales</span>
+        <strong id="totalSalesCount">0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Total Amount</span>
+        <strong id="totalAmount">₱0.00</strong>
+      </article>
+      <article class="stat-card">
+        <span>Paid Amount</span>
+        <strong id="paidAmount">₱0.00</strong>
+      </article>
+      <article class="stat-card">
+        <span>Unpaid Amount</span>
+        <strong id="unpaidAmount">₱0.00</strong>
+      </article>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Charts</h2>
+        <p>Clear mobile charts for daily totals and payment status.</p>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-wrap chart-box">
+          <canvas id="dailySalesChart"></canvas>
+        </div>
+        <div class="chart-wrap chart-box small-chart">
+          <canvas id="paymentChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head table-head">
+        <div>
+          <h2>Sales Records</h2>
+          <p>Card view on Android, table view on wider screens.</p>
+        </div>
+        <div class="toolbar">
+          <input type="text" id="searchInput" placeholder="Search promo, customer, notes" />
+          <select id="filterStatus">
+            <option value="All">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
+          <button id="exportBtn" class="secondary">Export</button>
+          <label class="file-label secondary">
+            Import
+            <input type="file" id="importFile" accept="application/json" hidden />
+          </label>
+          <button id="clearAllBtn" class="danger">Clear All</button>
+        </div>
+      </div>
+
+      <div id="mobileRecords" class="mobile-records"></div>
+
+      <div class="table-wrap desktop-only">
+        <table>
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Promo</th>
+              <th>Customer</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="salesTableBody">
+            <tr>
+              <td colspan="7" class="empty-state">No sales yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+</body>
+</html>
